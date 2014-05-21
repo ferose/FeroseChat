@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <title>Ferose Chat</title>
     <link rel="stylesheet" type="text/css" href="/static/css/style.css"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <script src="/static/js/jquery-1.11.1.min.js"></script>
     <script src="/static/js/aes.js"></script>
     <script src="/socket.io/socket.io.js"></script>
@@ -13,7 +14,7 @@
 </div>
 <div id="passphraseInputContainer"><input type="text" id="passphraseInput" placeholder="passphrase"></div>
 <div id="messageInputContainer"><textarea name="message" id="messageInput" placeholder="message"></textarea></div>
-<button id="sendButton">Send</button>
+<!--<button id="sendButton">Send</button>-->
 
 <script type="text/javascript">
     $(function() {
@@ -31,11 +32,17 @@
             var chatEntries = $("#chatEntries");
             chatEntries.append(chatContent);
             chatEntries.animate({ scrollTop: chatEntries.prop("scrollHeight") }, 200);
+            hideKeyboard();
         }
 
-        $("#sendButton").click(function() {
-            sendMessage();
-        })
+        var hideKeyboard = function() {
+            document.activeElement.blur();
+            $("input").blur();
+        };
+
+//        $("#sendButton").click(function() {
+//            sendMessage();
+//        })
 
         $(document).keypress(function(e) {
             if(e.which == 13) {
