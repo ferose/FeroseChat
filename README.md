@@ -1,2 +1,2 @@
-FeroseCrypt
+FeroseChat
 ===========

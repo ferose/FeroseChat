@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Ferose Chat</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/style.css"/>
+    <script src="/static/js/jquery-1.11.1.min.js"></script>
+    <script src="/static/js/aes.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+<div id="chatEntries">
+</div>
+<div id="passphraseInputContainer"><input type="text" id="passphraseInput" placeholder="passphrase"></div>
+<div id="messageInputContainer"><textarea name="message" id="messageInput" placeholder="message"></textarea></div>
+<button id="sendButton">Send</button>
+
+<script type="text/javascript">
+    $(function() {
+        var socket = io.connect();
+
+        function addMessage(msg, isMe) {
+            var date = new Date();
+            var dateString = date.toLocaleTimeString();
+            var chatContent =
+                    '<div class="message-'+(isMe ? "me" : "you")+'">' +
+                      '<div class="message-meta">'+(isMe ? "Me" : "You")+': <div class="message-time">'+dateString+'</div></div>' +
+                      msg +
+                    '</div>';
+
+            var chatEntries = $("#chatEntries");
+            chatEntries.append(chatContent);
+            chatEntries.animate({ scrollTop: chatEntries.prop("scrollHeight") }, 200);
+        }
+
+        $("#sendButton").click(function() {
+            sendMessage();
+        })
+
+        $(document).keypress(function(e) {
+            if(e.which == 13) {
+                sendMessage();
+                return false;
+            }
+        });
+
+        function sendMessage() {
+            var msg = $("#messageInput").val();
+            var pass = $("#passphraseInput").val();
+            var encrypted =  CryptoJS.AES.encrypt(msg, pass);
+            var encoded = btoa(encrypted);
+            socket.emit('message', encoded);
+            addMessage(msg, true);
+            $("#messageInput").val("");
+        }
+
+        socket.on('message', function(encoded) {
+            var encrypted = atob(encoded);
+            var pass = $("#passphraseInput").val();
+            var decrypted = CryptoJS.AES.decrypt(encrypted, pass)
+            var decryptedString = decrypted.toString(CryptoJS.enc.Utf8);
+            addMessage(decryptedString, false);
+        })
+    })
+</script>
+
+</body>
+</html>

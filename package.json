@@ -1,0 +1,15 @@
+{
+  "name": "FeroseChat",
+  "description": "chat with me",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "express": "3.x",
+    "express3-handlebars": "*",
+    "socket.io": "*"
+  },
+  "main": "app.js",
+  "engines": {
+    "node": "0.10.x"
+  }
+}
