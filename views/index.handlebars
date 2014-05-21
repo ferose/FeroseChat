@@ -19,6 +19,7 @@
 <script type="text/javascript">
     $(function() {
         var socket = io.connect();
+        var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
         function addMessage(msg, isMe) {
             var date = new Date();
@@ -36,8 +37,10 @@
         }
 
         var hideKeyboard = function() {
-            document.activeElement.blur();
-            $("input").blur();
+            if (isMobile) {
+                document.activeElement.blur();
+                $("input").blur();
+            }
         };
 
 //        $("#sendButton").click(function() {
