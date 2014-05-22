@@ -7,14 +7,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <script src="/static/js/jquery-1.11.1.min.js"></script>
     <script src="/static/js/aes.js"></script>
+    <script src="/static/js/iscroll.js"></script>
     <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">
+        var myScroll;
+
+        function loaded() {
+            myScroll = new IScroll("#chatEntries",
+                    {
+                        mouseWheel: true,
+                        click: false,
+                        scrollX: false,
+                        scrollY: true,
+                        scrollbars: true,
+                        shrinkScrollbars: 'scale',
+                        fadeScrollbars: true
+                    }
+            );
+        }
+
+        document.addEventListener('touchmove', function (e) {
+            e.preventDefault();
+        }, false);
+
+    </script>
 </head>
-<body>
+<body onload="loaded()">
 <div id="chatEntries">
-    <div id="prevChat">
+    <div id="scroller">
+        <div id="prevChat">
+        </div>
+        <div id="currentChat">
+        </div>
     </div>
-    <div id="currentChat">
-    </div>
+
 </div>
 <div id="passphraseInputContainer"><input type="text" id="passphraseInput" placeholder="passphrase"></div>
 <div id="messageInputContainer"><textarea name="message" id="messageInput" placeholder="message"></textarea></div>
@@ -34,15 +60,24 @@
             hasFocus = false;
         });
 
+        var newMessageShown = false;
+
         function setNewMessage(msg, newMsgString) {
+            newMessageShown = true;
             if (hasFocus) {
                 $("title").html("Ferose Chat");
+                newMessageShown = false;
                 return;
             }
             $("title").html(newMsgString ? "Ferose Chat - New Message" : msg);
-            setTimeout(function() {
-              setNewMessage(msg, !newMsgString);
+            setTimeout(function () {
+                setNewMessage(msg, !newMsgString);
             }, 1000);
+        }
+
+        function scrollToBottom() {
+            myScroll.refresh();
+            myScroll.scrollTo(0, myScroll.maxScrollY, 200);
         }
 
         function addMessage(msg, isMe, typing) {
@@ -56,18 +91,18 @@
 
             if (typing) {
                 $("#currentChat").html(chatContent);
+                scrollToBottom();
             }
             else {
                 if (!isMe) {
                     $("#currentChat").html("");
 
-                    if (!hasFocus) {
+                    if (!hasFocus && !newMessageShown) {
                         setNewMessage(msg);
                     }
                 }
-                var chatEntries = $("#prevChat");
-                chatEntries.append(chatContent);
-                chatEntries.animate({ scrollTop: chatEntries.prop("scrollHeight") }, 200);
+                $("#prevChat").append(chatContent);
+                scrollToBottom();
                 if (isMe) {
                     hideKeyboard();
                 }
