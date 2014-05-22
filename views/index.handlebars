@@ -11,6 +11,10 @@
 </head>
 <body>
 <div id="chatEntries">
+    <div id="prevChat">
+    </div>
+    <div id="currentChat">
+    </div>
 </div>
 <div id="passphraseInputContainer"><input type="text" id="passphraseInput" placeholder="passphrase"></div>
 <div id="messageInputContainer"><textarea name="message" id="messageInput" placeholder="message"></textarea></div>
@@ -21,19 +25,25 @@
         var socket = io.connect();
         var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-        function addMessage(msg, isMe) {
+        function addMessage(msg, isMe, typing) {
             var date = new Date();
             var dateString = date.toLocaleTimeString();
             var chatContent =
-                    '<div class="message-'+(isMe ? "me" : "you")+'">' +
-                      '<div class="message-meta">'+(isMe ? "Me" : "You")+': <div class="message-time">'+dateString+'</div></div>' +
+                    '<div class="message-'+ (typing ? "typing" : (isMe ? "me" : "you"))+'">' +
+                      '<div class="message-meta">'+(typing ? "Typing" : (isMe ? "Me" : "You"))+': <div class="message-time">'+dateString+'</div></div>' +
                       msg +
                     '</div>';
 
-            var chatEntries = $("#chatEntries");
-            chatEntries.append(chatContent);
-            chatEntries.animate({ scrollTop: chatEntries.prop("scrollHeight") }, 200);
-            hideKeyboard();
+            if (typing) {
+                $("#currentChat").html(chatContent);
+            }
+            else {
+                $("#currentChat").html("");
+                var chatEntries = $("#prevChat");
+                chatEntries.append(chatContent);
+                chatEntries.animate({ scrollTop: chatEntries.prop("scrollHeight") }, 200);
+                hideKeyboard();
+            }
         }
 
         var hideKeyboard = function() {
@@ -49,19 +59,25 @@
 
         $(document).keypress(function(e) {
             if(e.which == 13) {
-                sendMessage();
+                sendMessage(false);
                 return false;
             }
         });
 
-        function sendMessage() {
+        $("#messageInput").keypress(function(e) {
+            sendMessage(true);
+        });
+
+        function sendMessage(isTyping) {
             var msg = $("#messageInput").val();
             var pass = $("#passphraseInput").val();
             var encrypted =  CryptoJS.AES.encrypt(msg, pass);
             var encoded = btoa(encrypted);
-            socket.emit('message', encoded);
-            addMessage(msg, true);
-            $("#messageInput").val("");
+            socket.emit(isTyping ? 'typing' : 'message', encoded);
+            if (!isTyping) {
+                addMessage(msg, true, false);
+                $("#messageInput").val("");
+            }
         }
 
         socket.on('message', function(encoded) {
@@ -69,7 +85,15 @@
             var pass = $("#passphraseInput").val();
             var decrypted = CryptoJS.AES.decrypt(encrypted, pass)
             var decryptedString = decrypted.toString(CryptoJS.enc.Utf8);
-            addMessage(decryptedString, false);
+            addMessage(decryptedString, false, false);
+        })
+
+        socket.on('typing', function(encoded) {
+            var encrypted = atob(encoded);
+            var pass = $("#passphraseInput").val();
+            var decrypted = CryptoJS.AES.decrypt(encrypted, pass)
+            var decryptedString = decrypted.toString(CryptoJS.enc.Utf8);
+            addMessage(decryptedString, false, true);
         })
     })
 </script>

@@ -21,6 +21,9 @@ io.sockets.on('connection', function (socket) {
   socket.on('message', function(message) {
     socket.broadcast.emit('message', message);
   })
+  socket.on('typing', function(message) {
+    socket.broadcast.emit('typing', message);
+  })
 });
 
 var port = Number(process.env.PORT || 3000);
