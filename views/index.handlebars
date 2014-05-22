@@ -88,13 +88,13 @@
             addMessage(decryptedString, false, false);
         })
 
-//        socket.on('typing', function(encoded) {
-//            var encrypted = atob(encoded);
-//            var pass = $("#passphraseInput").val();
-//            var decrypted = CryptoJS.AES.decrypt(encrypted, pass)
-//            var decryptedString = decrypted.toString(CryptoJS.enc.Utf8);
-//            addMessage(decryptedString, false, true);
-//        })
+        socket.on('typing', function(encoded) {
+            var encrypted = atob(encoded);
+            var pass = $("#passphraseInput").val();
+            var decrypted = CryptoJS.AES.decrypt(encrypted, pass)
+            var decryptedString = decrypted.toString(CryptoJS.enc.Utf8);
+            addMessage(decryptedString, false, true);
+        })
     })
 </script>
 
