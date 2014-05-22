@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8"/>
     <title>Ferose Chat</title>
     <link rel="stylesheet" type="text/css" href="/static/css/style.css"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -21,32 +21,60 @@
 <!--<button id="sendButton">Send</button>-->
 
 <script type="text/javascript">
-    $(function() {
+    $(function () {
         var socket = io.connect();
         var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        var hasFocus = true;
+        $(window).focus(function () {
+            hasFocus = true;
+            $("title").html("Ferose Chat");
+        })
+        $(window).blur(function () {
+            hasFocus = false;
+        });
+
+        function setNewMessage(msg, newMsgString) {
+            if (hasFocus) {
+                $("title").html("Ferose Chat");
+                return;
+            }
+            $("title").html(newMsgString ? "Ferose Chat - New Message" : msg);
+            setTimeout(function() {
+              setNewMessage(msg, !newMsgString);
+            }, 1000);
+        }
 
         function addMessage(msg, isMe, typing) {
             var date = new Date();
             var dateString = date.toLocaleTimeString();
             var chatContent =
-                    '<div class="message-'+ (typing ? "typing" : (isMe ? "me" : "you"))+'">' +
-                      '<div class="message-meta">'+(typing ? "Typing" : (isMe ? "Me" : "You"))+': <div class="message-time">'+dateString+'</div></div>' +
-                      msg +
+                    '<div class="message-' + (typing ? "typing" : (isMe ? "me" : "you")) + '">' +
+                    '<div class="message-meta">' + (typing ? "Typing" : (isMe ? "Me" : "You")) + ': <div class="message-time">' + dateString + '</div></div>' +
+                    msg +
                     '</div>';
 
             if (typing) {
                 $("#currentChat").html(chatContent);
             }
             else {
-                $("#currentChat").html("");
+                if (!isMe) {
+                    $("#currentChat").html("");
+
+                    if (!hasFocus) {
+                        setNewMessage(msg);
+                    }
+                }
                 var chatEntries = $("#prevChat");
                 chatEntries.append(chatContent);
                 chatEntries.animate({ scrollTop: chatEntries.prop("scrollHeight") }, 200);
-                hideKeyboard();
+                if (isMe) {
+                    hideKeyboard();
+                }
             }
         }
 
-        var hideKeyboard = function() {
+        var hideKeyboard = function () {
             if (isMobile) {
                 document.activeElement.blur();
                 $("input").blur();
@@ -57,21 +85,24 @@
 //            sendMessage();
 //        })
 
-        $(document).keypress(function(e) {
-            if(e.which == 13) {
+        $(document).keypress(function (e) {
+            if (e.which == 13) {
                 sendMessage(false);
                 return false;
             }
         });
 
-        $("#messageInput").keypress(function(e) {
+        $("#messageInput").on('change keyup paste', function () {
             sendMessage(true);
         });
 
         function sendMessage(isTyping) {
             var msg = $("#messageInput").val();
+            if (!msg) {
+                return;
+            }
             var pass = $("#passphraseInput").val();
-            var encrypted =  CryptoJS.AES.encrypt(msg, pass);
+            var encrypted = CryptoJS.AES.encrypt(msg, pass);
             var encoded = btoa(encrypted);
             socket.emit(isTyping ? 'typing' : 'message', encoded);
             if (!isTyping) {
@@ -80,7 +111,7 @@
             }
         }
 
-        socket.on('message', function(encoded) {
+        socket.on('message', function (encoded) {
             var encrypted = atob(encoded);
             var pass = $("#passphraseInput").val();
             var decrypted = CryptoJS.AES.decrypt(encrypted, pass)
@@ -88,7 +119,7 @@
             addMessage(decryptedString, false, false);
         })
 
-        socket.on('typing', function(encoded) {
+        socket.on('typing', function (encoded) {
             var encrypted = atob(encoded);
             var pass = $("#passphraseInput").val();
             var decrypted = CryptoJS.AES.decrypt(encrypted, pass)
