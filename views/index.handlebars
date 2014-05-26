@@ -5,6 +5,9 @@
     <title>Ferose Chat</title>
     <link rel="stylesheet" type="text/css" href="/static/css/style.css"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta property="og:type"            content="website" />
+    <meta property="og:title"           content="Chat with Ferose" />
+    <meta property="og:image"           content="/static/img/ferose.jpg"/>
     <script src="/static/js/jquery-1.11.1.min.js"></script>
     <script src="/static/js/aes.js"></script>
     <script src="/static/js/iscroll.js"></script>
@@ -76,8 +79,12 @@
         }
 
         function scrollToBottom() {
+            var prevMaxScroll = myScroll.maxScrollY;
             myScroll.refresh();
-            myScroll.scrollTo(0, myScroll.maxScrollY, 200);
+            var curMaxScroll = myScroll.maxScrollY;
+            if (curMaxScroll-prevMaxScroll != 0) {
+                myScroll.scrollBy(0, curMaxScroll-prevMaxScroll, 0);
+            }
         }
 
         function addMessage(msg, isMe, typing) {
