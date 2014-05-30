@@ -109,11 +109,27 @@
                     }
                 }
                 $("#prevChat").append(chatContent);
+
                 scrollToBottom();
                 if (isMe) {
                     hideKeyboard();
                 }
             }
+        }
+
+        function addStatus(msg) {
+            var date = new Date();
+            var dateString = date.toLocaleTimeString();
+            var chatContent =
+                    '<div class="message-you">' +
+                    '<div class="message-meta">'+msg+' <div class="message-time">' + dateString + '</div></div>' +
+                    '</div>';
+
+            if (!hasFocus && !newMessageShown) {
+                setNewMessage(msg);
+            }
+            $("#prevChat").append(chatContent);
+            scrollToBottom();
         }
 
         var hideKeyboard = function () {
@@ -167,6 +183,10 @@
             var decrypted = CryptoJS.AES.decrypt(encrypted, pass)
             var decryptedString = decrypted.toString(CryptoJS.enc.Utf8);
             addMessage(decryptedString, false, true);
+        })
+
+        socket.on('status', function (msg) {
+            addStatus(msg);
         })
     })
 </script>
